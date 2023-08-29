@@ -1,77 +1,210 @@
 from tkinter import *
-import tkinter as tk
+from tkinter import filedialog as fd
+from tkinter import messagebox
+from tkinter.messagebox import showinfo
 
-class HomePage(tk.Tk):
+class HomePage(Tk):
     def __init__(self):
         super().__init__()
         self.title("EEG Record")
-        #self.geometry("800x600")
+        self.geometry("600x400")
 
-        button_back = tk.Button(self, text="Back", padx=5, pady=2, command=lambda: [self.show_pageMain(), button_back.pack_forget()])
+        self.page_main()
+    
+    def page_main(self):
 
-        # Create the frames for different pages
-        self.pageMain = tk.Frame(self)
-        self.pageJoystick = tk.Frame(self)
-        self.pageOpenBCI = tk.Frame(self)
-        self.pageRecord = tk.Frame(self)
-
-        # Create and place widgets in each page
-        self.create_widgets_main(button_back)
-        self.create_widgets_joystick()
-        self.create_widgets_openbci()
-        self.create_widgets_record()
-
-        self.show_page(self.pageMain)
-
-    def create_widgets_main(self, button_back):
-        label = tk.Label(self.pageMain, text="EEG Data Recording", font=("Arial", 12))
-        label.pack(pady=(10,40))
+        frame_main = Frame(self, width=600,height=400)
+        frame_main.pack(fill=BOTH, expand=True)
 
         # Buttons for navigation
 
-        buttonframe = tk.Frame(self.pageMain)
-        buttonframe.rowconfigure(0, weight=1)
-        buttonframe.rowconfigure(1, weight=1)
-        buttonframe.rowconfigure(2, weight=1)
+        label = Label(frame_main, text="EEG Data Recording", font=("Helvetica", 24))
+        label.pack(pady=(25,75))
 
-        btn1 = tk.Button(buttonframe, text="Joystick", font=("Arial", 8), command=lambda: [button_back.pack(side="left", anchor="nw"), self.show_page(self.pageJoystick)])
-        btn1.grid(row=0, column=0, pady=5, sticky="nsew")
+        btn1 = Button(frame_main, text="Joystick", font=("Helvetica", 12), bg="lightblue", command=lambda: [frame_main.pack_forget(), self.page_joystick()])
+        btn1.pack(fill=BOTH, padx=200, pady=5)
 
-        btn2 = tk.Button(buttonframe, text="OpenBCI Headset", font=("Arial", 8), command=lambda: [button_back.pack(side="left", anchor="nw"), self.show_page(self.pageOpenBCI)])
-        btn2.grid(row=1, column=0, pady=5, sticky="nsew")
+        btn2 = Button(frame_main, text="OpenBCI Headset", font=("Helvetica", 12), bg="lightblue", command=lambda: [frame_main.pack_forget(), self.page_headset()])
+        btn2.pack(fill=BOTH, padx=200, pady=5)
 
-        btn3 = tk.Button(buttonframe, text="Start recording", font=("Arial", 8), command=lambda: [button_back.pack(side="left", anchor="nw"), self.show_page(self.pageRecord)])
-        btn3.grid(row=2, column=0, pady=5, sticky="nsew")
+        btn3 = Button(frame_main, text="Start recording", font=("Helvetica", 12), bg="orange", command=lambda: [frame_main.pack_forget(), self.page_srecord1()])
+        btn3.pack(fill=BOTH, padx=200, pady=5)
 
-        buttonframe.pack()
+    def page_headset(self):
+
+        frame_headset = Frame(self, width=600,height=400)
+        frame_headset.pack(fill=BOTH, expand=True)
+
+        btn_back = Button(frame_headset, text="Back", font=("Helvetica", 12), command=lambda: [frame_headset.pack_forget(), self.page_main()])
+        btn_back.pack(anchor=NW)
+
+        label = Label(frame_headset, text="Open BCI Headset", font=("Helvetica", 24))
+        label.pack(pady=(0,40))
+
+    def page_srecord1(self):
+
+        frame_srecord1 = Frame(self, width=600,height=400)
+        frame_srecord1.pack(fill=BOTH, expand=True)
+
+        btn_back = Button(frame_srecord1, text="Back", font=("Helvetica", 12), command=lambda: [frame_srecord1.pack_forget(), self.page_main()])
+        btn_back.pack(anchor=NW)
+
+        label1 = Label(frame_srecord1, text="Headset Status", font=("Helvetica", 20))
+
+        # button1 does not have capability to check if it's connected or not yet, showing default for now
+
+        button1 = Label(frame_srecord1, text="Connected", height=2, font=("Helvetica", 16), bg="lightgreen") # checks if it's connected
+
+        label2 = Label(frame_srecord1, text="Start Recording?", font=("Helvetica", 20))
+        label3 = Label(frame_srecord1, text="When the recording starts, a numpy file will be stored \n in the designated path!", font=("Helvetica", 12))
+
+        button2 = Button(frame_srecord1, text="Start", height=2, font=("Helvetica", 12), command=lambda: [frame_srecord1.pack_forget(), self.page_srecord2()])
+        button3 = Button(frame_srecord1, text="Use pre-recorded file", height=2, font=("Helvetica", 12), command=lambda: [frame_srecord1.pack_forget(), self.page_srecord3()])
+
+        label1.pack(fill=X, pady=10)
+        button1.pack(fill=X, pady=10, padx=220)
+        label2.pack(fill=X, pady=10)
+        label3.pack(fill=X, pady=10)
+        button2.pack(fill=X, side=LEFT, padx=(150,10), expand=True)
+        button3.pack(fill=X, side=RIGHT, padx=(10,150), expand=True)
+
+    def page_srecord2(self):
+
+        frame_srecord2 = Frame(self, width=600,height=400)
+        frame_srecord2.pack(fill=BOTH, expand=True)
+
+        btn_back = Button(frame_srecord2, text="Back", font=("Helvetica", 12), command=lambda: [frame_srecord2.pack_forget(), self.page_srecord1()])
+        btn_back.pack(anchor=NW)
+
+        label1 = Label(frame_srecord2, text="Ready to Record?", font=("Helvetica", 24))
+
+        label1.pack(fill=X, pady=10)
+
+        disclaimer = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+
+        label2 = Label(frame_srecord2, text=disclaimer, font=("Helvetica", 12), wraplength=400)
+        label2.pack(fill=X, pady=10)
+
+        button1 = Button(frame_srecord2, text="Start!", height=2, font=("Helvetica", 12), command=lambda: [frame_srecord2.pack_forget(), self.page_srecord4()])
+        button2 = Button(frame_srecord2, text="Predict", height=2, font=("Helvetica", 12), command=lambda: [frame_srecord2.pack_forget(), '''self.page_predictrun()''']) # predict run not yet implemented
+
+        button1.pack(fill=X, side=LEFT, padx=(150,10), expand=True)
+        button2.pack(fill=X, side=RIGHT, padx=(10,150), expand=True)
+
+    def page_srecord3(self):
+
+        frame_srecord3 = Frame(self, width=600,height=400)
+        frame_srecord3.pack(fill=BOTH, expand=True)
+
+        btn_back = Button(frame_srecord3, text="Back", font=("Helvetica", 12), command=lambda: [frame_srecord3.pack_forget(), self.page_srecord1()])
+        btn_back.pack(anchor=NW)
+
+        label1 = Label(frame_srecord3, text="Pre-Recorded Data", font=("Helvetica", 20))
+
+        self.file = ""
+        
+        label2 = Label(frame_srecord3, text="Ready to start? Load in your data file! Select your \n numpy file containing the voltage data!", font=("Helvetica", 12))
+        button1 = Button(frame_srecord3, text="Browse", height=2, font=("Helvetica", 12), command=lambda: [self.browse_file(), label3.config(text = "The current file is \"" + self.file + "\"\n Use this file? ")])
+
+        label3 = Label(frame_srecord3, text="The current file is \"" + self.file + "\"\n Use this file? ", font=("Helvetica", 12))
+
+        button2 = Button(frame_srecord3, text="Begin", height=2, font=("Helvetica", 12), command=lambda: [frame_srecord3.pack_forget(), '''self.page_predictviz()''']) # predict viz not yet implemented
+
+        label1.pack(fill=X, pady=10)
+        label2.pack(fill=X, pady=10)
+        button1.pack(fill=X, pady=10, padx=180)
+        label3.pack(fill=X, pady=10)
+        button2.pack(fill=X, padx=180, expand=True)
+
+    def browse_file(self):
+
+        filename = fd.askopenfilename(
+            title='Open a file',
+            initialdir='/',)
+        
+        if filename != "":
+
+            showinfo(
+                title='Selected File',
+                message=filename
+            )
+
+            if filename.endswith(".npy"):
+                self.file = filename
+            else:
+                messagebox.showerror("Error", "Given file is not a numpy file.\nPlease select another file.")
+        
     
-    def create_widgets_joystick(self):
-        label = tk.Label(self.pageJoystick, text="Joystick", font=("Arial", 12))
-        label.pack(pady=(10,40))
+    def page_srecord4(self):
 
-    def create_widgets_openbci(self):
-        label = tk.Label(self.pageOpenBCI, text="Open BCI Headset", font=("Arial", 12))
-        label.pack(pady=(10,40))
+        frame_srecord4 = Frame(self, width=600,height=400)
+        frame_srecord4.pack(fill=BOTH, expand=True)
 
-    def create_widgets_record(self):
-        label = tk.Label(self.pageRecord, text="Recording", font=("Arial", 12))
-        label.pack(pady=(10,40))
+        btn_back = Button(frame_srecord4, text="Back", font=("Helvetica", 12), command=lambda: [frame_srecord4.pack_forget(), self.page_srecord2()])
+        btn_back.pack(anchor=NW)
 
-    def show_page(self, page):
-        # Hide the main page and show the selected page
-        self.pageMain.pack_forget()
-        page.pack()
+        button1 = Button(frame_srecord4, text="With Joystick", height=15, width=20, bg="lightblue", font=("Helvetica", 16), command=lambda: [frame_srecord4.pack_forget(), '''self.page_srecord5()''']) # srecord5 not yet implemented
+        button2 = Button(frame_srecord4, text="No Joystick", height=15, width=20, bg="orange", font=("Helvetica", 16), command=lambda: [frame_srecord4.pack_forget(), '''self.page_srecord6()''']) # srecord6 not yet implemented
 
-    def show_pageMain(self):
-        # Hide all pages and show the main page
-        self.pageRecord.pack_forget()
-        self.pageJoystick.pack_forget()
-        self.pageOpenBCI.pack_forget()
-        self.pageMain.pack()
+        button1.pack(fill=BOTH, side=LEFT, padx=5, expand=True)
+        button2.pack(fill=BOTH, side=RIGHT, padx=5, expand=True)
 
-window= HomePage()
-#lbl=Label(window, text="EEG Record", font=("Helvetica", 16))
-#lbl.place(x=60, y=50)
-#window.title('EEG Record')
-window.geometry("300x200+10+10")
-window.mainloop()
+    def page_joystick(self):
+
+        frame_joystick = Frame(self, width=600,height=400)
+        frame_joystick.pack(fill=BOTH, expand=True)
+
+        btn_back = Button(frame_joystick, text="Back", font=("Helvetica", 12), command=lambda: [frame_joystick.pack_forget(), self.canvas.destroy(), self.page_main()])
+        btn_back.pack(anchor=NW)
+
+        self.center_x = 200
+        self.center_y = 150
+        self.radius = 100
+        self.current_x = self.center_x
+        self.current_y = self.center_y
+
+        self.canvas = Canvas(self, width=400, height=400)
+        self.canvas.pack()
+
+        self.canvas.bind("<Button-1>", self.move_joystick)
+        self.canvas.bind("<B1-Motion>", self.move_joystick)
+        self.canvas.bind("<ButtonRelease-1>", self.reset_joystick)
+
+        self.draw_joystick()
+
+    def draw_joystick(self):
+        self.canvas.delete("joystick")
+
+        self.canvas.create_oval(
+            self.center_x - self.radius,
+            self.center_y - self.radius,
+            self.center_x + self.radius,
+            self.center_y + self.radius,
+            outline="black", width=2, tags="joystick"
+        )
+
+        self.canvas.create_oval(
+            self.current_x - 10,
+            self.current_y - 10,
+            self.current_x + 10,
+            self.current_y + 10,
+            fill="red", tags="joystick"
+        )
+
+    def move_joystick(self, event):
+        x, y = event.x, event.y
+        distance = ((x - self.center_x) ** 2 + (y - self.center_y) ** 2) ** 0.5
+
+        if distance <= self.radius:
+            self.current_x = x
+            self.current_y = y
+
+        self.draw_joystick()
+
+    def reset_joystick(self, event):
+        self.current_x = self.center_x
+        self.current_y = self.center_y
+        self.draw_joystick()
+
+root = HomePage()
+root.mainloop()
