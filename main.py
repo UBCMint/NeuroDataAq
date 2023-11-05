@@ -158,18 +158,88 @@ class HomePage(Tk):
         
     
     def page_srecord4(self):
-
-        frame_srecord4 = Frame(self, width=600,height=400)
+        frame_srecord4 = Frame(self, width=600, height=400)
         frame_srecord4.pack(fill=BOTH, expand=True)
 
         btn_back = Button(frame_srecord4, text="Back", font=("Helvetica", 12), command=lambda: [frame_srecord4.pack_forget(), self.page_srecord2()])
         btn_back.pack(anchor=NW)
 
-        button1 = Button(frame_srecord4, text="With Joystick", height=15, width=20, bg="lightblue", font=("Helvetica", 16), command=lambda: [frame_srecord4.pack_forget(), '''self.page_srecord5()''']) # srecord5 not yet implemented
-        button2 = Button(frame_srecord4, text="No Joystick", height=15, width=20, bg="orange", font=("Helvetica", 16), command=lambda: [frame_srecord4.pack_forget(), '''self.page_srecord6()''']) # srecord6 not yet implemented
+        button1 = Button(frame_srecord4, text="With Joystick", height=15, width=20, bg="lightblue", font=("Helvetica", 16), command=lambda: [frame_srecord4.pack_forget(), self.page_arrow_display()])  # Navigate to arrow display screen
+
+        button2 = Button(frame_srecord4, text="No Joystick", height=15, width=20, bg="orange", font=("Helvetica", 16), command=lambda: [frame_srecord4.pack_forget(), self.page_srecord6()])  # srecord6 not yet implemented
 
         button1.pack(fill=BOTH, side=LEFT, padx=5, expand=True)
         button2.pack(fill=BOTH, side=RIGHT, padx=5, expand=True)
+
+    def page_arrow_display(self):
+        import tkinter as tk
+        import keyboard
+        from PIL import Image, ImageTk
+
+        frame_arrow_display = Frame(self, width=600, height=400)
+        frame_arrow_display.pack(fill=BOTH, expand=True)
+
+        btn_back = Button(frame_arrow_display, text="Back", font=("Helvetica", 12), command=lambda: [frame_arrow_display.pack_forget(), self.page_srecord4()])
+        btn_back.pack(anchor=NW)
+
+        # Create a dictionary to map arrow keys to their corresponding image file paths
+        arrow_key_mapping = {
+            'up': 'images/Up.png',
+            'down': 'images/Down.png',
+            'left': 'images/Left.png',
+            'right': 'images/Right.png'
+        }
+
+        arrow_images = {
+            'images/Up.png': (150, 0),
+            'images/Down.png': (150, 250),
+            'images/Left.png': (0, 125),
+            'images/Right.png': (300, 125)
+        }
+
+        # Create a tkinter canvas to display the arrow images
+        canvas = tk.Canvas(frame_arrow_display, width=400, height=400)
+        canvas.pack()
+
+        # Function to update the canvas with the arrow image
+        def update_arrow_image(event):
+            if event.name in arrow_key_mapping:
+                x, y = arrow_images[arrow_key_mapping[event.name]]
+                image_path = arrow_key_mapping[event.name]
+                img = Image.open(image_path)
+                img = img.resize((100, 100), Image.ANTIALIAS)  # Adjust the size as needed
+                img = ImageTk.PhotoImage(img)
+                canvas.create_image(x, y, image=img, anchor=tk.NW)  # Use the canvas's create_image method
+                canvas.image = img
+
+        # Register arrow key press events
+        for key in arrow_key_mapping:
+            keyboard.on_press_key(key, update_arrow_image)
+
+        button_back = Button(frame_arrow_display, text="Back", font=("Helvetica", 12), command=lambda: [frame_arrow_display.pack_forget(), self.page_srecord4()])
+        button_back.pack(fill=X, pady=10)
+
+        label_instruction = Label(frame_arrow_display, text="Press arrow keys to display arrows on the screen.", font=("Helvetica", 12))
+        label_instruction.pack(fill=X, pady=10)
+
+    # Make sure to call the page_arrow_display function to display arrows
+
+
+        # Function to update the canvas with the arrow image
+        def update_arrow_image(event):
+            if event.name in arrow_key_mapping:
+                x, y = arrow_images[arrow_key_mapping[event.name]]
+                image_path = arrow_key_mapping[event.name]
+                img = Image.open(image_path)
+                img = img.resize((100, 100), Image.ANTIALIAS)  # Adjust the size as needed
+                img = ImageTk.PhotoImage(img)
+                canvas.create_image(x, y, image=img, anchor=tk.NW)  # Use the canvas's create_image method
+                canvas.image = img
+
+            # Register arrow key press events
+            for key in arrow_key_mapping:
+                keyboard.on_press_key(key, update_arrow_image)
+
 
     def page_joystick(self):
 
