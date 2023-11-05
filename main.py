@@ -30,6 +30,9 @@ class HomePage(Tk):
         btn3 = Button(frame_main, text="Start recording", font=("Helvetica", 12), bg="orange", command=lambda: [frame_main.pack_forget(), self.page_srecord1()])
         btn3.pack(fill=BOTH, padx=200, pady=5)
 
+        btn4 = Button(frame_main, text="Start recording", font=("Helvetica", 12), bg="orange", command=lambda: [frame_main.pack_forget(), self.page_srecord1()])
+        btn4.pack(fill=BOTH, padx=200, pady=5)
+
     def page_headset(self):
 
         frame_headset = Frame(self, width=600,height=400)
@@ -115,6 +118,18 @@ class HomePage(Tk):
         button1.pack(fill=X, pady=10, padx=180)
         label3.pack(fill=X, pady=10)
         button2.pack(fill=X, padx=180, expand=True)
+
+
+    def page_config(self):
+
+        frame_config = Frame(self, width=600,height=400)
+        frame_config.pack(fill=BOTH, expand=True)
+
+        btn_back = Button(frame_config, text="Back", font=("Helvetica", 12), command=lambda: [frame_srecord3.pack_forget(), self.page_srecord1()])
+        btn_back.pack(anchor=NW)
+
+        label1.pack(fill=X, pady=10)
+        label2.pack(fill=X, pady=10)
 
     def browse_file(self):
 

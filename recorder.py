@@ -2,8 +2,25 @@ import csv
 import time
 import random
 
+import brainflow
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels, BoardIds
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+
 class EEG8DataRecorder:
     def __init__(self, filename):
+
+        # using cyton board
+        params = BrainFlowInputParams ()
+        params.serial_port = "COM3"
+
+        self.board = BoardShim (BoardIds.CYTON_BOARD.value, params)
+        self.board.prepare_session ()
+
+        BoardShim.log_message (LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
+
+        self.board.release_session ()  
+     
+        # data structure setup
         self.channelCount = 8
         self.filename = filename
         self.startTime = time.time()
@@ -17,18 +34,22 @@ class EEG8DataRecorder:
             self.eeg_data = [[] for _ in range(self.channelCount + 3)]  # Clear existing EEG data
             self.state = "recording"
             self.startTime = time.time()
+            # self.board.start_stream ()
 
     def stop(self):
        # if self.state == "recording":
             self.state = "stopped"
+            #self.board.release_session ()  
 
     def pause(self):
         #if self.state == "recording":
             self.state = "paused"
+            #self.board.stop_stream ()
 
     def resume(self):
        # if self.state == "paused":
             self.state = "recording"
+            #self.board.start_stream ()
 
     def setdirection(self, direction):
         self.direction = direction
@@ -77,5 +98,6 @@ if __name__ == "__main__":
         if i == 75:
             eeg_recorder.direction = 3
         eeg_recorder.add_eeg_data(data_point)
+
     # Stop recording and save data to CSV
     eeg_recorder.save_to_csv()
