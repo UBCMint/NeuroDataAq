@@ -1,7 +1,13 @@
+import argparse
+import time
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter.messagebox import showinfo
+from recorder import EEG8DataRecorder
+
+
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 
 class HomePage(Tk):
     def __init__(self):
@@ -10,6 +16,7 @@ class HomePage(Tk):
         self.geometry("600x400")
 
         self.page_main()
+        self.connectionState = False
     
     def page_main(self):
 
@@ -30,7 +37,7 @@ class HomePage(Tk):
         btn3 = Button(frame_main, text="Start recording", font=("Helvetica", 12), bg="orange", command=lambda: [frame_main.pack_forget(), self.page_srecord1()])
         btn3.pack(fill=BOTH, padx=200, pady=5)
 
-        btn4 = Button(frame_main, text="Start recording", font=("Helvetica", 12), bg="orange", command=lambda: [frame_main.pack_forget(), self.page_srecord1()])
+        btn4 = Button(frame_main, text="Config", font=("Helvetica", 12), bg="lightblue", command=lambda: [frame_main.pack_forget(), self.page_config()])
         btn4.pack(fill=BOTH, padx=200, pady=5)
 
     def page_headset(self):
@@ -43,6 +50,9 @@ class HomePage(Tk):
 
         label = Label(frame_headset, text="Open BCI Headset", font=("Helvetica", 24))
         label.pack(pady=(0,40))
+        button2 = Button(frame_headset, text="Connect", height=2, font=("Helvetica", 12), command=lambda: [self.headsetConnect()])
+        button2.pack(fill=X, padx=(10,150), expand=True, anchor=CENTER)
+
 
     def page_srecord1(self):
 
@@ -125,11 +135,8 @@ class HomePage(Tk):
         frame_config = Frame(self, width=600,height=400)
         frame_config.pack(fill=BOTH, expand=True)
 
-        btn_back = Button(frame_config, text="Back", font=("Helvetica", 12), command=lambda: [frame_srecord3.pack_forget(), self.page_srecord1()])
+        btn_back = Button(frame_config, text="Back", font=("Helvetica", 12), command=lambda: [frame_config.pack_forget(), self.page_main()])
         btn_back.pack(anchor=NW)
-
-        label1.pack(fill=X, pady=10)
-        label2.pack(fill=X, pady=10)
 
     def browse_file(self):
 
@@ -220,6 +227,62 @@ class HomePage(Tk):
         self.current_x = self.center_x
         self.current_y = self.center_y
         self.draw_joystick()
+        
+    def parse_arguments():
+        BoardShim.enable_dev_board_logger()
+        parser = argparse.ArgumentParser()
+        # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
+        parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False,
+                            default=0)
+        parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
+        parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False,
+                            default=0)
+        parser.add_argument('--ip-address', type=str, help='ip address', required=False, default='')
+        parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
+        parser.add_argument('--mac-address', type=str, help='mac address', required=False, default='')
+        parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
+        
+        parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
+        parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards',
+        
+                            required=True)
+        parser.add_argument('--file', type=str, help='file', required=False, default='')
+        parser.add_argument('--master-board', type=int, help='master board id for streaming and playback boards',
+                            required=False, default=BoardIds.NO_BOARD)
+        return parser.parse_args()
 
+    #add connection labels
+    def headsetConnect(board, args):
+        try:
+            params = BrainFlowInputParams()
+            params.ip_port = args.ip_port
+            params.serial_port = args.serial_port
+            params.mac_address = args.mac_address
+            params.other_info = args.other_info
+            params.serial_number = args.serial_number
+            params.ip_address = args.ip_address
+            params.ip_protocol = args.ip_protocol
+            params.timeout = args.timeout
+            params.file = args.file
+            params.master_board = args.master_board
+
+            board = BoardShim(args.board_id, params)
+            board.prepare_session()
+
+            return board
+        
+        except Exception as e:
+            
+            return None
+        
+    def record(board):
+        board.start_stream()
+        time.sleep(10)
+        # data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
+        data = board.get_board_data()  # get all data and remove it from internal buffer
+        board.stop_stream()
+        board.release_session()
+
+    
 root = HomePage()
 root.mainloop()

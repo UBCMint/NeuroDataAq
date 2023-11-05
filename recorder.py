@@ -10,15 +10,15 @@ class EEG8DataRecorder:
     def __init__(self, filename):
 
         # using cyton board
-        params = BrainFlowInputParams ()
-        params.serial_port = "COM3"
+        # params = BrainFlowInputParams ()
+        # params.serial_port = "COM3"
 
-        self.board = BoardShim (BoardIds.CYTON_BOARD.value, params)
-        self.board.prepare_session ()
+        # self.board = BoardShim (BoardIds.CYTON_BOARD.value, params)
+        # self.board.prepare_session ()
 
-        BoardShim.log_message (LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
+        # BoardShim.log_message (LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
 
-        self.board.release_session ()  
+        # self.board.release_session ()  
      
         # data structure setup
         self.channelCount = 8
