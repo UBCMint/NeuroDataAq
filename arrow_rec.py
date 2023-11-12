@@ -199,45 +199,46 @@ class HomePage(Tk):
 
         # Function to update the canvas with the arrow image
         def update_arrow_image(event):
+            nonlocal current_direction
+
             if event.name in arrow_key_mapping:
                 x, y = arrow_images[arrow_key_mapping[event.name]]
                 image_path = arrow_key_mapping[event.name]
                 img = Image.open(image_path)
-                img = img.resize((100, 100), Image.ANTIALIAS)  # Adjust the size as needed
+                img = img.resize((100, 100), Image.ANTIALIAS)
                 img = ImageTk.PhotoImage(img)
-                canvas.create_image(x, y, image=img, anchor=tk.NW)  # Use the canvas's create_image method
+                canvas.create_image(x, y, image=img, anchor=tk.NW)
                 canvas.image = img
 
-        # Register arrow key press events
         def log_arrow_key(event):
-            nonlocal current_direction  # To modify the 'current_direction' variable
+            nonlocal current_direction
 
             if event.name in arrow_key_mapping:
                 key_pressed = event.name
 
-                # Update current direction based on the pressed key
                 if key_pressed in direction_mapping:
                     current_direction = direction_mapping[key_pressed]
                 else:
-                    current_direction = 0  # If not a mapped key, set direction to centered
+                    current_direction = 0
 
-                # Generate EEG data (random numbers between 0 and 1 for EEG1-8)
                 eeg_data = [random.random() for _ in range(8)]
-
-                # Get current timestamp
                 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                state = "recording"
 
-                # Set state
-                state = "recording"  # Assuming the keys are being recorded
-
-                # Write the data to the CSV file
                 row = [timestamp, state, current_direction] + eeg_data
                 self.csv_writer.writerow(row)
                 self.csv_file.flush()
 
-        # Register arrow key press events and log them
+                update_arrow_image(event)
+
         for key in arrow_key_mapping:
             keyboard.on_press_key(key, log_arrow_key)
+
+        button_back = Button(frame_arrow_display, text="Back", font=("Helvetica", 12), command=lambda: [frame_arrow_display.pack_forget(), self.page_srecord4()])
+        button_back.pack(fill=X, pady=10)
+
+        label_instruction = Label(frame_arrow_display, text="Press arrow keys to display arrows on the screen.", font=("Helvetica", 12))
+        label_instruction.pack(fill=X, pady=10)
 
     # Make sure to call the page_arrow_display function to display arrows
 
