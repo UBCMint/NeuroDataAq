@@ -14,9 +14,11 @@ class HomePage(Tk):
         super().__init__()
         self.title("EEG Record")
         self.geometry("600x400")
-
+        
+        self.currentDirection = "none"
         self.page_main()
         self.connectionState = False
+        self.args = self.parse_arguments()
     
     def page_main(self):
 
@@ -135,7 +137,7 @@ class HomePage(Tk):
         frame_config = Frame(self, width=600,height=400)
         frame_config.pack(fill=BOTH, expand=True)
 
-        btn_back = Button(frame_config, text="Back", font=("Helvetica", 12), command=lambda: [frame_config.pack_forget(), self.page_main()])
+        btn_back = Button(frame_config, text="Back", font=("Helvetica", 12), command=lambda: [frame_config.pack_forget(), self.page_main(), self.cleanup()])
         btn_back.pack(anchor=NW)
 
     def browse_file(self):
@@ -179,7 +181,7 @@ class HomePage(Tk):
         frame_arrow_display = Frame(self, width=600, height=400)
         frame_arrow_display.pack(fill=BOTH, expand=True)
 
-        btn_back = Button(frame_arrow_display, text="Back", font=("Helvetica", 12), command=lambda: [frame_arrow_display.pack_forget(), self.page_srecord4()])
+        btn_back = Button(frame_arrow_display, text="Back", font=("Helvetica", 12), command=lambda: [frame_arrow_display.pack_forget(), self.page_srecord4, cleanup(board, recorder)])
         btn_back.pack(anchor=NW)
 
         # Create a dictionary to map arrow keys to their corresponding image file paths
@@ -197,24 +199,61 @@ class HomePage(Tk):
             'images/Right.png': (300, 125)
         }
 
+        direction_mapping = {
+            'up': 1,
+            'right': 2,
+            'down': 3,
+            'left': 4
+        }
+
+        current_direction = 0
+
         # Create a tkinter canvas to display the arrow images
         canvas = tk.Canvas(frame_arrow_display, width=400, height=400)
         canvas.pack()
 
         # Function to update the canvas with the arrow image
-        def update_arrow_image(event):
+        def update_arrow_image_press(event):
+            nonlocal current_direction
+
             if event.name in arrow_key_mapping:
                 x, y = arrow_images[arrow_key_mapping[event.name]]
                 image_path = arrow_key_mapping[event.name]
                 img = Image.open(image_path)
-                img = img.resize((100, 100), Image.ANTIALIAS)  # Adjust the size as needed
+                img = img.resize((100, 100), Image.ANTIALIAS)
                 img = ImageTk.PhotoImage(img)
-                canvas.create_image(x, y, image=img, anchor=tk.NW)  # Use the canvas's create_image method
+                canvas.create_image(x, y, image=img, anchor=tk.NW)
                 canvas.image = img
 
-        # Register arrow key press events
+        def update_arrow_image_release(event):
+            if event.name in arrow_key_mapping:
+                canvas.delete("all")
+
+        def set_arrow_key_press(event):
+            if event.name in arrow_key_mapping:
+                self.arrowStatus = event.name
+                recorder.setdirection(event.name)
+        
+        def set_arrow_key_release(event):
+            if event.name == self.arrowStatus:
+                self.arrowStatus = "none"
+                recorder.setdirection("none")
+
+        def cleanup(board, recorder):
+            recorder.stop()
+            recorder.save_to_csv()
+
+            board.stop_stream()
+            board.release_session()
+        
+        recorder = EEG8DataRecorder("eeg_data.csv")
+
         for key in arrow_key_mapping:
-            keyboard.on_press_key(key, update_arrow_image)
+            keyboard.on_press_key(key, update_arrow_image_press)
+            keyboard.on_release_key(key, update_arrow_image_release)
+
+            keyboard.on_press_key(key, set_arrow_key_press)
+            keyboard.on_release_key(key, set_arrow_key_release)
 
         button_back = Button(frame_arrow_display, text="Back", font=("Helvetica", 12), command=lambda: [frame_arrow_display.pack_forget(), self.page_srecord4()])
         button_back.pack(fill=X, pady=10)
@@ -222,23 +261,27 @@ class HomePage(Tk):
         label_instruction = Label(frame_arrow_display, text="Press arrow keys to display arrows on the screen.", font=("Helvetica", 12))
         label_instruction.pack(fill=X, pady=10)
 
+        try:
+            board = self.headsetConnect(self.args)
+
+            board.start_stream()
+            recorder.start()
+
+            frame_arrow_display.after(1000, self.record(recorder, board))
+
+        except Exception as E:
+            print(f"Error: {E}")
+
+
     # Make sure to call the page_arrow_display function to display arrows
 
+    def record(recorder, board):
 
-        # Function to update the canvas with the arrow image
-        def update_arrow_image(event):
-            if event.name in arrow_key_mapping:
-                x, y = arrow_images[arrow_key_mapping[event.name]]
-                image_path = arrow_key_mapping[event.name]
-                img = Image.open(image_path)
-                img = img.resize((100, 100), Image.ANTIALIAS)  # Adjust the size as needed
-                img = ImageTk.PhotoImage(img)
-                canvas.create_image(x, y, image=img, anchor=tk.NW)  # Use the canvas's create_image method
-                canvas.image = img
+        # data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
+        data = board.get_board_data()  # get all data and remove it from internal buffer
 
-            # Register arrow key press events
-            for key in arrow_key_mapping:
-                keyboard.on_press_key(key, update_arrow_image)
+        for i, value in enumerate(data):
+            recorder.add_eeg_data(data[i])
 
 
     def page_joystick(self):
@@ -298,7 +341,7 @@ class HomePage(Tk):
         self.current_y = self.center_y
         self.draw_joystick()
         
-    def parse_arguments():
+    def parse_arguments(self):
         BoardShim.enable_dev_board_logger()
         parser = argparse.ArgumentParser()
         # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
@@ -319,10 +362,13 @@ class HomePage(Tk):
         parser.add_argument('--file', type=str, help='file', required=False, default='')
         parser.add_argument('--master-board', type=int, help='master board id for streaming and playback boards',
                             required=False, default=BoardIds.NO_BOARD)
+
+        # print(parser.parse_args())
+        
         return parser.parse_args()
 
     #add connection labels
-    def headsetConnect(board, args):
+    def headsetConnect(args):
         try:
             params = BrainFlowInputParams()
             params.ip_port = args.ip_port
@@ -336,23 +382,13 @@ class HomePage(Tk):
             params.file = args.file
             params.master_board = args.master_board
 
-            board = BoardShim(args.board_id, params)
-            board.prepare_session()
-
-            return board
+            return BoardShim(args.board_id, params)
         
         except Exception as e:
             
             return None
         
-    def record(board):
-        board.start_stream()
-        time.sleep(10)
-        # data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
-        data = board.get_board_data()  # get all data and remove it from internal buffer
-        board.stop_stream()
-        board.release_session()
 
-    
+
 root = HomePage()
 root.mainloop()
